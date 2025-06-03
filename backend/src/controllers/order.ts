@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express'
 import { FilterQuery, Error as MongooseError, Types } from 'mongoose'
+import sanitizeHtml from 'sanitize-html'
 import BadRequestError from '../errors/bad-request-error'
 import NotFoundError from '../errors/not-found-error'
 import Order, { IOrder } from '../models/order'
@@ -309,15 +310,34 @@ export const createOrder = async (
             return next(new BadRequestError('Неверная сумма заказа'))
         }
 
+        const sanitisedComment = sanitizeHtml(comment, {
+            allowedAttributes: {
+                'a': ['href', 'target', 'rel'],
+            },
+            transformTags: {
+                'a': (tagName, attribs) => {
+                // eslint-disable-next-line no-param-reassign
+                attribs.rel = 'noopener noreferrer nofollow';
+                // eslint-disable-next-line no-param-reassign
+                attribs.target = '_blank';
+                return { tagName, attribs };
+                },
+            },
+        })    
+
+        const sanitisedAddress = sanitizeHtml(address, {
+            allowedTags: [],
+        })    
+
         const newOrder = new Order({
             totalAmount: total,
             products: items,
             payment,
             phone,
             email,
-            comment,
+            comment: sanitisedComment,
             customer: userId,
-            deliveryAddress: address,
+            deliveryAddress: sanitisedAddress,
         })
         const populateOrder = await newOrder.populate(['customer', 'products'])
         await populateOrder.save()
