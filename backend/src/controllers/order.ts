@@ -413,7 +413,6 @@ export const createOrder = async (
 
         return res.status(200).json(populateOrder)
     } catch (error) {
-        console.log('CATCH ERROR:', error);
         if (error instanceof MongooseError.ValidationError) {
             return next(new BadRequestError(error.message))
         }
