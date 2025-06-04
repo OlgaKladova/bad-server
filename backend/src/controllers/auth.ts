@@ -43,7 +43,7 @@ const register = async (req: Request, res: Response, next: NextFunction) => {
         const sanitizedName = sanitizeHtml(name, {
             allowedTags: [],
         }) 
-            // захешировать  пароль
+        
         const newUser = new User({ email: sanitizedEmail, password, name: sanitizedName })
         await newUser.save()
         const accessToken = newUser.generateAccessToken()
