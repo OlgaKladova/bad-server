@@ -32,15 +32,16 @@ export const getOrders = async (
         const filters: FilterQuery<Partial<IOrder>> = {}
 
         if (status) {
-            if (typeof status === 'object') {
-                Object.assign(filters, status)
+            if (typeof status !== 'string') {
+                return next(new BadRequestError('Некорректный статус'));
             }
-            if (typeof status === 'string') {
-                filters.status = status
-            }
+            filters.status = status
         }
 
         if (totalAmountFrom) {
+            if (Number.isNaN(Number(totalAmountFrom))) {
+                return next(new BadRequestError('Некорректная сумма'));
+            }
             filters.totalAmount = {
                 ...filters.totalAmount,
                 $gte: Number(totalAmountFrom),
@@ -48,6 +49,9 @@ export const getOrders = async (
         }
 
         if (totalAmountTo) {
+            if (Number.isNaN(Number(totalAmountTo))) {
+                return next(new BadRequestError('Некорректная сумма'));
+            }
             filters.totalAmount = {
                 ...filters.totalAmount,
                 $lte: Number(totalAmountTo),
@@ -55,6 +59,9 @@ export const getOrders = async (
         }
 
         if (orderDateFrom) {
+            if (Number.isNaN(Date.parse(orderDateFrom as string))) {
+                return next(new BadRequestError('Некорректная дата'));
+            }
             filters.createdAt = {
                 ...filters.createdAt,
                 $gte: new Date(orderDateFrom as string),
@@ -62,6 +69,9 @@ export const getOrders = async (
         }
 
         if (orderDateTo) {
+            if (Number.isNaN(Date.parse(orderDateTo as string))) {
+                return next(new BadRequestError('Некорректная дата'));
+            }
             filters.createdAt = {
                 ...filters.createdAt,
                 $lte: new Date(orderDateTo as string),
@@ -92,16 +102,18 @@ export const getOrders = async (
 
         if (search) {
             if (typeof search !== 'string' || search.length > 100) {
-                return new BadRequestError('Некорректный параметр поиска');
+                return next(new BadRequestError('Некорректный параметр поиска'));
             }
+
             let searchRegex: RegExp;
+            
             try {
                 searchRegex = new RegExp(search as string, 'i');
             } catch {
                 return next(new BadRequestError('Некорректный параметр поиска'));
             }
+            
             const searchNumber = Number(search)
-
             const searchConditions: any[] = [{ 'products.title': searchRegex }]
 
             if (!Number.isNaN(searchNumber)) {
@@ -116,21 +128,41 @@ export const getOrders = async (
 
             filters.$or = searchConditions
         }
-
+        
         const allowedSortFields = ['createdAt', 'totalAmount', 'status'];
+        
         let sortFieldSafe = 'createdAt';
+        
         if (typeof sortField === 'string' && allowedSortFields.includes(sortField)) {
             sortFieldSafe = sortField;
+        } else if (sortField !== undefined) {
+            return next(new BadRequestError('Некорректные данные'));
         }
+        
         const sortOrderSafe = sortOrder === 'asc' ? 1 : -1;
+        
+        if (sortOrder && sortOrder !== 'asc' && sortOrder !== 'desc') {
+            return next(new BadRequestError('Некорректное направление сортировки'));
+        }
+        
         const sort = { [sortFieldSafe]: sortOrderSafe };
 
         if (sortField && sortOrder) {
             sort[sortField as string] = sortOrder === 'desc' ? -1 : 1
         }
+
+        const parsedLimit = Number(limit);
+        const parsedPage = Number(page);
         
-        const normalizedLimit = Math.min(Number(limit) || 10, 10);
+        if (
+            (limit !== undefined && (typeof parsedLimit !== 'number' || Number.isNaN(parsedLimit) || parsedLimit < 1)) ||
+            (page !== undefined && (typeof parsedPage !== 'number' || Number.isNaN(parsedPage) || parsedPage < 1))
+        ) {
+            return next(new BadRequestError('Некорректные параметры пагинации'));
+        }
         
+        const normalizedLimit = Math.min(parsedLimit || 10, 10);
+
         aggregatePipeline.push(
             { $sort: sort },
             { $skip: (Number(page) - 1) * normalizedLimit },
