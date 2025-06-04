@@ -386,6 +386,10 @@ export const createOrder = async (
             allowedTags: [],
         })    
 
+        if (typeof phone !== 'string' || phone.length === 0 || phone.length > 20) {
+            return next(new BadRequestError('Некорректный номер телефона'));
+        }
+
         const newOrder = new Order({
             totalAmount: total,
             products: items,
