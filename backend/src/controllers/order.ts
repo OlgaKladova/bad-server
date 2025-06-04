@@ -386,7 +386,7 @@ export const createOrder = async (
             allowedTags: [],
         })    
 
-        if (typeof phone !== 'string' || phone.length === 0 || phone.length > 20) {
+        if (typeof phone !== 'string' || Array.isArray(phone) || phone.length === 0 || phone.length > 20) {
             return next(new BadRequestError('Некорректный номер телефона'));
         }
 
