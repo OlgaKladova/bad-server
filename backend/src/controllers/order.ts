@@ -91,7 +91,15 @@ export const getOrders = async (
         ]
 
         if (search) {
-            const searchRegex = new RegExp(search as string, 'i')
+            if (typeof search !== 'string' || search.length > 100) {
+                return new BadRequestError('Некорректный параметр поиска');
+            }
+            let searchRegex: RegExp;
+            try {
+                searchRegex = new RegExp(search as string, 'i');
+            } catch {
+                return next(new BadRequestError('Некорректный параметр поиска'));
+            }
             const searchNumber = Number(search)
 
             const searchConditions: any[] = [{ 'products.title': searchRegex }]
@@ -109,7 +117,13 @@ export const getOrders = async (
             filters.$or = searchConditions
         }
 
-        const sort: { [key: string]: any } = {}
+        const allowedSortFields = ['createdAt', 'totalAmount', 'status'];
+        let sortFieldSafe = 'createdAt';
+        if (typeof sortField === 'string' && allowedSortFields.includes(sortField)) {
+            sortFieldSafe = sortField;
+        }
+        const sortOrderSafe = sortOrder === 'asc' ? 1 : -1;
+        const sort = { [sortFieldSafe]: sortOrderSafe };
 
         if (sortField && sortOrder) {
             sort[sortField as string] = sortOrder === 'desc' ? -1 : 1
@@ -189,7 +203,15 @@ export const getOrdersCurrentUser = async (
 
         if (search) {
             // если не экранировать то получаем Invalid regular expression: /+1/i: Nothing to repeat
-            const searchRegex = new RegExp(search as string, 'i')
+            if (typeof search !== 'string' || search.length > 100) {
+                return new BadRequestError('Некорректный параметр поиска');
+            }
+            let searchRegex: RegExp;
+            try {
+                searchRegex = new RegExp(search as string, 'i');
+            } catch {
+                return new BadRequestError('Некорректный параметр поиска');
+            }
             const searchNumber = Number(search)
             const products = await Product.find({ title: searchRegex })
             const productIds = products.map((product) => product._id)
