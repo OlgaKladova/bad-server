@@ -386,13 +386,15 @@ export const createOrder = async (
         const sanitisedAddress = sanitizeHtml(address, {
             allowedTags: [],
         })    
-        console.log('phone:', phone, typeof phone, Array.isArray(phone));
+        
         if (
             typeof phone !== 'string' ||
             phone.length === 0 ||
-            phone.length > 20 ||
-            !phoneRegExp.test(phone)
+            phone.length > 20
         ) {
+            return next(new BadRequestError('Некорректный номер телефона'));
+        }
+        if (!phoneRegExp.test(phone)) {
             return next(new BadRequestError('Некорректный номер телефона'));
         }
 
@@ -411,6 +413,7 @@ export const createOrder = async (
 
         return res.status(200).json(populateOrder)
     } catch (error) {
+        console.log('CATCH ERROR:', error);
         if (error instanceof MongooseError.ValidationError) {
             return next(new BadRequestError(error.message))
         }
