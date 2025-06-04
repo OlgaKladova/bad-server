@@ -151,18 +151,15 @@ export const getOrders = async (
         if (sortField && sortOrder) {
             sort[sortField as string] = sortOrder === 'desc' ? -1 : 1
         }
-
-        const parsedLimit = Number(limit);
-        const parsedPage = Number(page);
         
         if (
-            (limit !== undefined && (typeof parsedLimit !== 'number' || Number.isNaN(parsedLimit) || parsedLimit < 1)) ||
-            (page !== undefined && (typeof parsedPage !== 'number' || Number.isNaN(parsedPage) || parsedPage < 1))
+            (limit !== undefined && (typeof Number(limit) !== 'number' || Number.isNaN(Number(limit)) || Number(limit) < 1)) ||
+            (page !== undefined && (typeof Number(page) !== 'number' || Number.isNaN(Number(page)) || Number(page) < 1))
         ) {
             return next(new BadRequestError('Некорректные параметры пагинации'));
         }
         
-        const normalizedLimit = Math.min(parsedLimit || 10, 10);
+        const normalizedLimit = Math.min(Number(limit) || 10, 10);
 
         aggregatePipeline.push(
             { $sort: sort },
