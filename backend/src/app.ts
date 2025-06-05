@@ -15,11 +15,10 @@ const { PORT = 3000 } = process.env
 const app = express()
 
 app.use(cookieParser())
-
+app.set('trust proxy', 1);
 // app.use(cors())
 app.use(cors({ origin: ORIGIN_ALLOW, credentials: true }));
 // app.use(express.static(path.join(__dirname, 'public')));
-
 app.use(serveStatic(path.join(__dirname, 'public')))
 
 app.use(urlencoded({ extended: true }))
