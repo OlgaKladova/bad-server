@@ -1,8 +1,8 @@
 import { Router } from 'express'
 import { uploadFile } from '../controllers/upload'
-import { uploadWithMinSize } from '../middlewares/file'
+import { uploadValidation } from '../middlewares/file'
 
 const uploadRouter = Router()
-uploadRouter.post('/', uploadWithMinSize, uploadFile)
+uploadRouter.post('/', uploadValidation, uploadFile)
 
 export default uploadRouter
