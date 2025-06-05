@@ -16,5 +16,6 @@ node_modules
 
 # Typescript build
 dist
-temp
+temp/*
+!temp/.gitkeep
 .env
