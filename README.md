@@ -13,3 +13,4 @@ docker compose up -d
 6. Админка находится по адресу http://localhost/admin/
 
 <https://github.com/OlgaKladova/bad-server>
+Olga, 17 cohort, fullstack
