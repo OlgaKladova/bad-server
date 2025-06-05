@@ -14,6 +14,14 @@ import routes from './routes'
 const { PORT = 3000 } = process.env
 const app = express()
 
+const limiter = rateLimit({
+	windowMs: 60 * 1000, 
+	limit: 10, 
+	standardHeaders: true, 
+	legacyHeaders: false, 
+})
+
+app.use(limiter)
 app.use(cookieParser())
 app.set('trust proxy', 1);
 // app.use(cors())
@@ -28,15 +36,6 @@ app.options('*', cors())
 app.use(routes)
 app.use(errors())
 app.use(errorHandler)
-
-const limiter = rateLimit({
-	windowMs: 60 * 1000, 
-	limit: 10, 
-	standardHeaders: true, 
-	legacyHeaders: false, 
-})
-
-app.use(limiter)
 
 // eslint-disable-next-line no-console
 
