@@ -3,6 +3,7 @@ import { NextFunction, Request, Response } from 'express'
 import { constants } from 'http2'
 import jwt, { JwtPayload } from 'jsonwebtoken'
 import { Error as MongooseError } from 'mongoose'
+import sanitizeHtml from 'sanitize-html'
 import { REFRESH_TOKEN } from '../config'
 import BadRequestError from '../errors/bad-request-error'
 import ConflictError from '../errors/conflict-error'
@@ -36,7 +37,14 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
 const register = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { email, password, name } = req.body
-        const newUser = new User({ email, password, name })
+        const sanitizedEmail = sanitizeHtml(email, {
+            allowedTags: [],
+        })   
+        const sanitizedName = sanitizeHtml(name, {
+            allowedTags: [],
+        }) 
+        
+        const newUser = new User({ email: sanitizedEmail, password, name: sanitizedName })
         await newUser.save()
         const accessToken = newUser.generateAccessToken()
         const refreshToken = await newUser.generateRefreshToken()

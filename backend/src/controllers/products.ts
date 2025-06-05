@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express'
 import { constants } from 'http2'
 import { Error as MongooseError } from 'mongoose'
 import { join } from 'path'
+import sanitizeHtml from 'sanitize-html'
 import BadRequestError from '../errors/bad-request-error'
 import ConflictError from '../errors/conflict-error'
 import NotFoundError from '../errors/not-found-error'
@@ -42,6 +43,14 @@ const createProduct = async (
     try {
         const { description, category, price, title, image } = req.body
 
+        const sanitizedDescription = sanitizeHtml(description, {
+            allowedTags: [],
+        })        
+        
+        const sanitizedTitle = sanitizeHtml(title, {
+            allowedTags: [],
+        })
+ 
         // Переносим картинку из временной папки
         if (image) {
             movingFile(
@@ -52,11 +61,11 @@ const createProduct = async (
         }
 
         const product = await Product.create({
-            description,
+            description: sanitizedDescription,
             image,
             category,
             price,
-            title,
+            title: sanitizedTitle,
         })
         return res.status(constants.HTTP_STATUS_CREATED).send(product)
     } catch (error) {
@@ -81,7 +90,7 @@ const updateProduct = async (
 ) => {
     try {
         const { productId } = req.params
-        const { image } = req.body
+        const { image, description, title } = req.body
 
         // Переносим картинку из временной папки
         if (image) {
@@ -91,12 +100,20 @@ const updateProduct = async (
                 join(__dirname, `../public/${process.env.UPLOAD_PATH}`)
             )
         }
+        const sanitizedDescription = sanitizeHtml(description, {
+            allowedTags: [],
+        })
+        const sanitizedTitle = sanitizeHtml(title, {
+            allowedTags: [],
+        })
 
         const product = await Product.findByIdAndUpdate(
             productId,
             {
                 $set: {
                     ...req.body,
+                    description: sanitizedDescription,
+                    title: sanitizedTitle,
                     price: req.body.price ? req.body.price : null,
                     image: req.body.image ? req.body.image : undefined,
                 },
