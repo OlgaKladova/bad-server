@@ -15,15 +15,14 @@ const { PORT = 3000 } = process.env
 const app = express()
 
 const limiter = rateLimit({
-	windowMs: 60 * 1000, 
-	limit: 10, 
+	windowMs: 15 * 60 * 1000, 
+	limit: 40, 
 	standardHeaders: true, 
 	legacyHeaders: false, 
 })
 
-app.use(limiter)
 app.use(cookieParser())
-app.set('trust proxy', 1);
+app.set('trust proxy', 1)
 // app.use(cors())
 app.use(cors({ origin: ORIGIN_ALLOW, credentials: true }));
 // app.use(express.static(path.join(__dirname, 'public')));
@@ -33,6 +32,7 @@ app.use(urlencoded({ extended: true }))
 app.use(json())
 
 app.options('*', cors())
+app.use(limiter)
 app.use(routes)
 app.use(errors())
 app.use(errorHandler)

@@ -152,6 +152,7 @@ export const getCustomers = async (
             },
         })
     } catch (error) {
+        console.error('getCustomers error:', error);
         next(error)
     }
 }
