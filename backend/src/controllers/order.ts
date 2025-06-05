@@ -7,6 +7,7 @@ import Order, { IOrder } from '../models/order'
 import Product, { IProduct } from '../models/product'
 import User from '../models/user'
 import { phoneRegExp } from '../middlewares/validations'
+import escapeRegExp from '../utils/escapeRegExp'
 
 // eslint-disable-next-line max-len
 // GET /orders?page=2&limit=5&sort=totalAmount&order=desc&orderDateFrom=2024-07-01&orderDateTo=2024-08-01&status=delivering&totalAmountFrom=100&totalAmountTo=1000&search=%2B1
@@ -109,7 +110,7 @@ export const getOrders = async (
             let searchRegex: RegExp;
             
             try {
-                searchRegex = new RegExp(search as string, 'i');
+                searchRegex = new RegExp(escapeRegExp(search as string), 'i');
             } catch {
                 return next(new BadRequestError('Некорректный параметр поиска'));
             }
@@ -238,7 +239,7 @@ export const getOrdersCurrentUser = async (
             }
             let searchRegex: RegExp;
             try {
-                searchRegex = new RegExp(search as string, 'i');
+                searchRegex = new RegExp(escapeRegExp(search as string), 'i');
             } catch {
                 return new BadRequestError('Некорректный параметр поиска');
             }
